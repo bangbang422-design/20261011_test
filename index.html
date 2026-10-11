@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>우리 반 청소당번 추첨</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Malgun Gothic", sans-serif;
+      background: linear-gradient(135deg, #e0f2fe, #f3e8ff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      color: #243047;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 700px;
+      background: white;
+      border-radius: 28px;
+      padding: 40px 28px;
+      text-align: center;
+      box-shadow: 0 12px 35px rgba(50, 60, 100, 0.12);
+    }
+
+    .emoji {
+      font-size: 55px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: clamp(26px, 5vw, 38px);
+      margin: 0 0 12px;
+      color: #4338ca;
+    }
+
+    .description {
+      font-size: 17px;
+      color: #64748b;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .result {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin: 30px 0;
+    }
+
+    .number-card {
+      aspect-ratio: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f1f5f9;
+      border: 2px solid #e2e8f0;
+      border-radius: 18px;
+      font-size: clamp(23px, 5vw, 36px);
+      font-weight: bold;
+      color: #94a3b8;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .number-card.selected {
+      background: #ede9fe;
+      border-color: #8b5cf6;
+      color: #5b21b6;
+      animation: pop 0.35s ease-out;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.7); }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .status {
+      min-height: 28px;
+      font-size: 16px;
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+
+    button {
+      width: 100%;
+      max-width: 320px;
+      padding: 17px 24px;
+      border: none;
+      border-radius: 16px;
+      background: #6366f1;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #4338ca;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #4f46e5;
+    }
+
+    button:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #4338ca;
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: wait;
+    }
+
+    .footer {
+      margin-top: 28px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    @media (max-width: 420px) {
+      .container {
+        padding: 30px 16px;
+      }
+
+      .result {
+        gap: 6px;
+      }
+
+      .number-card {
+        border-radius: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <div class="emoji">🧹</div>
+
+    <h1>우리 반 청소당번 추첨</h1>
+
+    <p class="description">
+      오늘의 청소 도우미는 누구일까요?<br>
+      1번부터 30번까지, 행운의 주인공 5명을 뽑아요!
+    </p>
+
+    <div class="result" id="result" aria-live="polite">
+      <div class="number-card">?</div>
+      <div class="number-card">?</div>
+      <div class="number-card">?</div>
+      <div class="number-card">?</div>
+      <div class="number-card">?</div>
+    </div>
+
+    <div class="status" id="status" aria-live="polite">
+      버튼을 눌러 청소당번을 뽑아 보세요!
+    </div>
+
+    <button id="drawButton" onclick="drawStudents()">
+      🎲 청소당번 뽑기!
+    </button>
+
+    <div class="footer">
+      공정한 랜덤 추첨 · 중복 없이 5명 선정
+    </div>
+  </main>
+
+  <script>
+    const result = document.getElementById("result");
+    const status = document.getElementById("status");
+    const drawButton = document.getElementById("drawButton");
+
+    function drawStudents() {
+      drawButton.disabled = true;
+      status.textContent = "두근두근! 당번을 뽑고 있어요...";
+      drawButton.textContent = "추첨 중...";
+
+      // 1번부터 30번까지 번호 만들기
+      const students = Array.from(
+        { length: 30 },
+        (_, index) => index + 1
+      );
+
+      // Fisher-Yates 방식으로 무작위 섞기
+      for (let i = students.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [students[i], students[j]] = [students[j], students[i]];
+      }
+
+      // 앞에서 5명 선정 후 보기 좋게 번호순 정렬
+      const selected = students.slice(0, 5).sort((a, b) => a - b);
+
+      // 추첨 결과 표시
+      result.innerHTML = "";
+
+      selected.forEach((student, index) => {
+        const card = document.createElement("div");
+        card.className = "number-card";
+        card.textContent = student + "번";
+        result.appendChild(card);
+
+        // 카드가 순서대로 나타나는 효과
+        setTimeout(() => {
+          card.classList.add("selected");
+        }, index * 120);
+      });
+
+      setTimeout(() => {
+        status.textContent =
+          "🎉 축하합니다! 오늘의 청소당번이 선정되었습니다.";
+        drawButton.textContent = "🔄 다시 뽑기";
+        drawButton.disabled = false;
+      }, 650);
+    }
+  </script>
+</body>
+</html>
